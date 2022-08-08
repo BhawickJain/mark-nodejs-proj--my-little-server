@@ -1,4 +1,4 @@
-import express from "express";
+import express, { query } from "express";
 import ponyData from "../data/ponies.json";
 import { seasonOneEpisodes } from "./episodes";
 import { pickRandom } from "./random";
@@ -6,14 +6,36 @@ import { pickRandom } from "./random";
 const app = express();
 const serverStartDate = new Date();
 let serverHitCount = 0;
+let history: string[] = [];
 
 app.get("/", (req, res) => {
+  // https://expressjs.com/en/api.html#req.path
+  history = [...history, req.path.toString()];
   res.send(
     "This is the default path - and it isn't very interesting, sorry. \nTry visiting localhost:4000/creation-time, localhost:4000/current-time"
   );
 });
+console.log(history);
+
+app.get("/history", (req, res) => {
+  res.json({
+    routes: history,
+  });
+});
+
+app.get("/hello-world", (req, res) => {
+  history = [...history, req.path.toString()];
+  res.json({
+    english: "Hello world!",
+    esperanto: "Soluton mondo!",
+    hawaiian: "Aloha Honua",
+    turkish: "Merhaba Dünya!",
+    hindi: "Dunya Meherban",
+  });
+});
 
 app.get("/creation-time", (req, res) => {
+  history = [...history, req.path.toString()];
   res.json({
     message: `The server was started at ${serverStartDate.toTimeString()}`,
     utc: serverStartDate.toUTCString(),
@@ -22,6 +44,7 @@ app.get("/creation-time", (req, res) => {
 });
 
 app.get("/current-time", (req, res) => {
+  history = [...history, req.path.toString()];
   const dateOfRequestHandling = new Date();
 
   res.json({
@@ -32,6 +55,7 @@ app.get("/current-time", (req, res) => {
 });
 
 app.get("/hits", (req, res) => {
+  history = [...history, req.path.toString()];
   serverHitCount += 1;
   res.json({
     note: "We've registered your hit!",
@@ -41,6 +65,7 @@ app.get("/hits", (req, res) => {
 });
 
 app.get("/hits-stealth", (req, res) => {
+  history = [...history, req.path.toString()];
   res.json({
     note: "Oooh, you ninja. We didn't count that hit.",
     currentTotal: serverHitCount,
@@ -49,6 +74,7 @@ app.get("/hits-stealth", (req, res) => {
 });
 
 app.get("/ponies", (req, res) => {
+  history = [...history, req.path.toString()];
   res.json({
     message: "Loaded dummy JSON data:",
     data: ponyData,
@@ -56,7 +82,17 @@ app.get("/ponies", (req, res) => {
   });
 });
 
+app.get("/ponies/random", (req, res) => {
+  history = [...history, req.path.toString()];
+  res.json({
+    message: "Loaded dummy JSON pony:",
+    pony: pickRandom(Object.entries(ponyData.members)),
+    countedAsHit: false,
+  });
+});
+
 app.get("/season-one", (req, res) => {
+  history = [...history, req.path.toString()];
   res.json({
     countedAsHit: false,
     data: seasonOneEpisodes,
@@ -64,6 +100,7 @@ app.get("/season-one", (req, res) => {
 });
 
 app.get("/season-one/random", (req, res) => {
+  history = [...history, req.path.toString()];
   const randomEpisode = pickRandom(seasonOneEpisodes);
   res.json({
     countedAsHit: false,
